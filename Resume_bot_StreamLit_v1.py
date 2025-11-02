@@ -10,13 +10,38 @@ import os
 
 # 1. Load environment variables (for GROQ_API_KEY)
 load_dotenv(override=True)
+# 1. Initialize API Key variable
+GROQ_API_KEY = None
 
-# 2. INITIALIZE THE GROQ CLIENT!
-groq_client = None
+# 2. Try to load from Streamlit Secrets (for cloud deployment)
+if 'GROQ_API_KEY' in st.secrets:
+    GROQ_API_KEY = st.secrets['GROQ_API_KEY']
+    # You can set the environment variable explicitly if needed, but the client often reads st.secrets
+    os.environ['GROQ_API_KEY'] = GROQ_API_KEY 
+
+# 3. Fallback to local .env file (for local testing)
+elif os.path.exists(".env"):
+    load_dotenv()
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+# 4. Handle Missing Key
+if not GROQ_API_KEY:
+    st.error("⚠️ The GROQ_API_KEY is missing. Please set it in Streamlit Secrets or your local .env file.")
+    st.stop() # Stop execution if the key is missing
+
+# 5. INITIALIZE THE GROQ CLIENT with the retrieved key
+# Note: The Groq client often auto-detects the environment variable, but passing it is safest.
 try:
-    groq_client = Groq()
+    groq_client = Groq(api_key=GROQ_API_KEY)
 except Exception as e:
-    st.error(f"⚠️ Failed to initialize Groq client. Please check your GROQ_API_KEY environment variable. Error: {e}")
+    st.error(f"Failed to initialize Groq client: {e}")
+    groq_client = None
+# 2. INITIALIZE THE GROQ CLIENT!
+#groq_client = None
+#try:
+ #   groq_client = Groq()
+#except Exception as e:
+ #   st.error(f"⚠️ Failed to initialize Groq client. Please check your GROQ_API_KEY environment variable. Error: {e}")
     
 # 3. Define the candidate's name and primary roles
 name = "Salman Mohd"
