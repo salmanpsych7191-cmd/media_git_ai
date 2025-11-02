@@ -1,6 +1,4 @@
-requests
-python-dotenv
-gradio
+streamlit
+groq
 pypdf
-openai
-openai-agents
+python-dotenv
