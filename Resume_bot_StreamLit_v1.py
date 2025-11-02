@@ -50,12 +50,12 @@ primary_role_2 = "Agentic AI Beginner"
 
 # --- Data Loading ---
 
-# NOTE: The paths "me/linkedin.pdf" and "me/summary.txt" must be correct 
+# NOTE: The paths "linkedin.pdf" and "summary.txt" must be correct 
 # relative to where you run the streamlit script.
-# **CRITICAL**: Ensure 'me/linkedin.pdf' and 'me/summary.txt' exist in your file system.
+# **CRITICAL**: Ensure 'linkedin.pdf' and 'summary.txt' exist in your file system.
 
 linkedin = ""
-pdf_path = "me/linkedin.pdf"
+pdf_path = "linkedin.pdf"
 try:
     if os.path.exists(pdf_path):
         reader = PdfReader(pdf_path)
@@ -69,7 +69,7 @@ except Exception as e:
     st.error(f"❌ Error reading LinkedIn PDF: {e}")
 
 summary = ""
-summary_path = "me/summary.txt"
+summary_path = "summary.txt"
 try:
     if os.path.exists(summary_path):
         with open(summary_path, "r", encoding="utf-8") as f:
