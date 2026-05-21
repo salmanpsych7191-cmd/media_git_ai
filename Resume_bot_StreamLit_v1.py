@@ -275,7 +275,7 @@ with cta_col2:
 with cta_col3:
     st.link_button("Call", "tel:+918142471256", use_container_width=True)
 with cta_col4:
-    if os.path.exists(resume_docx_path):
+    if resume_docx_path and os.path.exists(resume_docx_path):
         with open(resume_docx_path, "rb") as f:
             st.download_button(
                 "Download Resume",
