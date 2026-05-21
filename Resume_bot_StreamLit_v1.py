@@ -2,9 +2,14 @@ import streamlit as st
 from groq import Groq
 from dotenv import load_dotenv
 from pypdf import PdfReader
-from docx import Document
 import os
 from datetime import datetime
+from io import BytesIO
+
+try:
+    from docx import Document
+except ImportError:
+    Document = None
 
 # --- Configuration and Initialization ---
 
@@ -31,34 +36,74 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 resume_docx = ""
 linkedin = ""
 summary = ""
+resume_docx_source = ""
+summary_source = ""
+linkedin_source = ""
 
-resume_docx_path = os.path.join(BASE_DIR, "RESUME_Assistant_Manager_Updated.docx")
-pdf_path = os.path.join(BASE_DIR, "me", "linkedin.pdf")
-summary_path = os.path.join(BASE_DIR, "me", "summary.txt")
+def _first_existing_path(candidates):
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+
+docx_candidates = [
+    os.path.join(BASE_DIR, "RESUME_Assistant_Manager_Updated.docx"),
+    os.path.join(BASE_DIR, "RESUME_SAP_HANA_AI_Engineer.docx"),
+    os.path.join(os.getcwd(), "RESUME_Assistant_Manager_Updated.docx"),
+    os.path.join(os.getcwd(), "RESUME_SAP_HANA_AI_Engineer.docx"),
+    os.path.join(BASE_DIR, "Resume", "RESUME_Assistant_Manager_Updated.docx"),
+    os.path.join(BASE_DIR, "Resume", "RESUME_SAP_HANA_AI_Engineer.docx"),
+]
+
+summary_candidates = [
+    os.path.join(BASE_DIR, "me", "summary.txt"),
+    os.path.join(BASE_DIR, "summary.txt"),
+    os.path.join(os.getcwd(), "me", "summary.txt"),
+    os.path.join(os.getcwd(), "summary.txt"),
+    os.path.join(BASE_DIR, "Resume", "me", "summary.txt"),
+]
+
+linkedin_pdf_candidates = [
+    os.path.join(BASE_DIR, "me", "linkedin.pdf"),
+    os.path.join(BASE_DIR, "linkedin.pdf"),
+    os.path.join(os.getcwd(), "me", "linkedin.pdf"),
+    os.path.join(os.getcwd(), "linkedin.pdf"),
+    os.path.join(BASE_DIR, "Resume", "me", "linkedin.pdf"),
+]
+
+resume_docx_path = _first_existing_path(docx_candidates)
+summary_path = _first_existing_path(summary_candidates)
+pdf_path = _first_existing_path(linkedin_pdf_candidates)
 
 try:
-    if os.path.exists(resume_docx_path):
+    if Document is None:
+        st.warning("python-docx is not installed. Resume DOCX context is disabled until dependency is added.")
+    elif resume_docx_path:
         resume_doc = Document(resume_docx_path)
         resume_docx = "\n".join(
             para.text.strip() for para in resume_doc.paragraphs if para.text and para.text.strip()
         )
+        resume_docx_source = resume_docx_path
 except Exception as e:
     st.error(f"Failed to read updated resume DOCX: {e}")
 
 try:
-    if os.path.exists(pdf_path):
+    if pdf_path:
         reader = PdfReader(pdf_path)
         for page in reader.pages:
             text = page.extract_text()
             if text:
                 linkedin += text
+        linkedin_source = pdf_path
 except Exception as e:
     st.error(f"Error reading LinkedIn PDF: {e}")
 
 try:
-    if os.path.exists(summary_path):
+    if summary_path:
         with open(summary_path, "r", encoding="utf-8") as f:
             summary = f.read()
+        summary_source = summary_path
 except Exception as e:
     st.error(f"Error reading summary file: {e}")
 
@@ -67,7 +112,8 @@ if not (resume_docx or linkedin or summary):
 
 
 # 4. Construct the System Prompt
-system_prompt = f"""
+def build_system_prompt():
+    return f"""
 You are acting as {name}. You are answering questions on {name}'s professional resume website,
 particularly questions related to career background, leadership experience, technical skills, and project delivery.
 
@@ -105,7 +151,7 @@ def get_groq_response(chat_history):
 
     # Format history for API: [system_prompt, *history_from_session_state]
     messages = [
-        {"role": "system", "content": system_prompt}
+        {"role": "system", "content": build_system_prompt()}
     ]
 
     # Add history from session_state
@@ -221,12 +267,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-cta_col1, cta_col2, cta_col3 = st.columns(3)
+cta_col1, cta_col2, cta_col3, cta_col4 = st.columns(4)
 with cta_col1:
     st.link_button("Email", "mailto:mohammed.salman7191@gmail.com", use_container_width=True)
 with cta_col2:
-    st.link_button("Call", "tel:+918142471256", use_container_width=True)
+    st.link_button("Portfolio", "https://salman-mohd-ai-agent.streamlit.app/", use_container_width=True)
 with cta_col3:
+    st.link_button("Call", "tel:+918142471256", use_container_width=True)
+with cta_col4:
     if os.path.exists(resume_docx_path):
         with open(resume_docx_path, "rb") as f:
             st.download_button(
@@ -260,6 +308,41 @@ with st.sidebar:
     st.markdown("<div class='facts'><b>Current Company:</b> Deloitte Support Services India Pvt. Ltd.<br/><b>Current Role:</b> Assistant Manager (SAP HANA & AI Solutions)<br/><b>Experience:</b> 11+ years<br/><b>Location:</b> Hyderabad, India<br/><b>Focus:</b> SAP HANA, Cloud Migration, AI Agents</div>", unsafe_allow_html=True)
     st.markdown("### Expertise")
     st.markdown("<span class='badge'>SAP HANA 2.0</span><span class='badge'>ECC 6.0</span><span class='badge'>GCP</span><span class='badge'>Azure</span><span class='badge'>AI Agents</span><span class='badge'>IT Governance</span>", unsafe_allow_html=True)
+    st.markdown("### Upload Context (Cloud Fallback)")
+    uploaded_docx = st.file_uploader("Upload Resume DOCX", type=["docx"], key="uploaded_docx")
+    uploaded_summary = st.file_uploader("Upload Summary TXT", type=["txt"], key="uploaded_summary")
+    uploaded_linkedin_pdf = st.file_uploader("Upload LinkedIn PDF", type=["pdf"], key="uploaded_linkedin_pdf")
+
+    if uploaded_docx and Document is not None:
+        try:
+            resume_doc = Document(BytesIO(uploaded_docx.getvalue()))
+            resume_docx = "\n".join(
+                para.text.strip() for para in resume_doc.paragraphs if para.text and para.text.strip()
+            )
+            resume_docx_source = "uploaded: " + uploaded_docx.name
+        except Exception as e:
+            st.error(f"Unable to parse uploaded DOCX: {e}")
+
+    if uploaded_summary:
+        try:
+            summary = uploaded_summary.getvalue().decode("utf-8", errors="ignore")
+            summary_source = "uploaded: " + uploaded_summary.name
+        except Exception as e:
+            st.error(f"Unable to read uploaded summary TXT: {e}")
+
+    if uploaded_linkedin_pdf:
+        try:
+            reader = PdfReader(BytesIO(uploaded_linkedin_pdf.getvalue()))
+            linkedin_chunks = []
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    linkedin_chunks.append(text)
+            linkedin = "\n".join(linkedin_chunks)
+            linkedin_source = "uploaded: " + uploaded_linkedin_pdf.name
+        except Exception as e:
+            st.error(f"Unable to parse uploaded LinkedIn PDF: {e}")
+
     st.caption("All responses are generated from provided resume/profile context.")
 
 tab_chat, tab_profile, tab_context = st.tabs(["AI Assistant", "Profile Snapshot", "Knowledge Context"])
@@ -281,8 +364,9 @@ def log_user_prompt(user_prompt):
     """Appends the user's prompt with a timestamp to a log file."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"[{timestamp}] USER PROMPT: {user_prompt}\n"
+    log_path = os.path.join(BASE_DIR, "chat_logs.txt")
     try:
-        with open("chat_logs.txt", "a", encoding="utf-8") as f:
+        with open(log_path, "a", encoding="utf-8") as f:
             f.write(log_entry)
     except Exception as e:
         print(f"Error logging prompt: {e}")
@@ -354,6 +438,10 @@ with tab_profile:
 
 with tab_context:
     st.markdown("### Context Loaded into Assistant")
+    st.markdown("#### Active Context Sources")
+    st.write("Resume DOCX Source:", resume_docx_source or "Not loaded")
+    st.write("Summary Source:", summary_source or "Not loaded")
+    st.write("LinkedIn Source:", linkedin_source or "Not loaded")
     st.subheader("Updated Resume DOCX")
     st.code(resume_docx[:2500] + "..." if resume_docx else "No updated resume DOCX loaded.", language="text")
     st.subheader("Summary")
