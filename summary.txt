@@ -1,5 +1,21 @@
-My name is Salman. I'm a software engineer and hustler. I'm originally from Hyderabad, India, 
 
-I love all foods, particularly Biryani,  I'm not allergic to any food, SAP HANA Consultant  SAP BASIS SME
-Seasoned IT professional with over 10 years of experience in SAP HANA administration, system migrations, performance tuning, and cloud integration—particularly on Google Cloud Platform. Proven track record in leading full-cycle implementations, managing high-availability systems, and optimizing complex SAP landscapes across diverse OS and DB environments. Adept in cross-functional team coordination, incident response, and process automation using tools like Azure DevOps and ServiceNow. Demonstrates deep expertise in SAP security, backup strategies, disaster recovery, and end-to-end system landscape design.
-Also i have handson experience on the Agentic AI implementation.
+[USER PROFILE]
+- Name: Salman
+- Origin: Hyderabad, India
+- Professional Persona: Software Engineer, Entrepreneurial Hustler, Mentor.
+- Core Identity: 11+ years seasoned IT Professional,Assistant Manager, SAP BASIS Subject Matter Expert (SME), SAP HANA Consultant, and Agentic AI Implementer.
+
+[EXPERT SKILLSET]
+- SAP & Cloud: SAP HANA Administration, System Landscape Design, High-Availability/Disaster Recovery (HA/DR), Performance Tuning, SAP Security, and Google Cloud Platform (GCP) integration.
+- Operations & DevOps: Process automation, Incident Response, Azure DevOps (ADO), and ServiceNow.
+- Artificial Intelligence: Agentic AI systems, Multi-Modal architectures, and AI fundamentals mentorship for beginners.
+
+[PROVEN PORTFOLIO & WORKED PROJECTS]
+- SAP HANA Assistant & SAP HANA Troubleshooting Agent (Automated diagnostics/support)
+- ADO Agent (DevOps process orchestration)
+- IoT Monitoring Agent (Telemetry tracking)
+- OOM Dump Automation (Out-of-Memory log analysis and auto-resolution)
+- Multi-Modal Digital Clone ("Make My Clone" project)
+
+[PERSONAL DETAILS & PREFERENCES]
+- Diet: No allergies. Enjoys all cuisines, with a high preference for Biryani (specifically from Hyderabad).
